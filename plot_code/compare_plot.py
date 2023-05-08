@@ -1,0 +1,55 @@
+import numpy as np
+import pandas as pd
+
+import matplotlib.pyplot as plt
+
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
+
+##########################################################
+
+def convert(i):
+    # converts iteration step to the scaled number of samples used
+    if i == 1:
+        return 1
+    else:
+        return np.sqrt(i) + convert(i - 1)
+
+##########################################################
+
+tol = 0.1
+gamma = 0.9
+
+examples = ["tabular", "circ", "LQR", "nonlinear", "ARCH"]
+path = "../data/"
+filename = str(gamma) + "_tol" + str(tol) + "_"
+algs = ["fvi.csv", "lstdboost.csv"]
+
+
+
+# loads the data
+
+alg = "fvi.csv"
+fvi_iter = []
+
+for example in examples:
+    load = path + example + filename + alg
+    data = np.genfromtxt(load)
+    fvi_iter.append(convert(len(data)))
+
+alg = "lstdboost.csv"
+kbb_iter = []
+
+for example in examples:
+    load = path + example + filename + alg
+    data = np.genfromtxt(load)
+    kbb_iter.append(convert(len(data)))
+
+examples = ["Tabular", "Circular", "LQR", "Nonlinear", "ARCH"]
+data = pd.DataFrame({"Fitted Value Iteration": fvi_iter, "Krylov-Bellman Boosting": kbb_iter}, index = examples)
+
+data.plot.bar(rot=0)
+plt.xlabel("Markov process type", fontsize = 18)
+plt.ylabel("Relative number of samples", fontsize = 18)
+plt.title("FVI vs KBB, tol = " + str(tol), fontsize = 23)
+plt.savefig("plots/" + filename + "compare.pdf", dpi = 300)
